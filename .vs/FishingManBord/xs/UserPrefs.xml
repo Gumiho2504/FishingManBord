@@ -1,0 +1,20 @@
+﻿<Properties StartupConfiguration="{D051ED3A-5E25-5801-7046-689AA5B5D168}|">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/FishingMan/Script/LoadingController.cs">
+    <Files>
+      <File FileName="Assets/FishingMan/Script/Boat.cs" Line="11" Column="6" />
+      <File FileName="Assets/FishingMan/Script/Fish.cs" />
+      <File FileName="Assets/FishingMan/Script/FishSpawn.cs" />
+      <File FileName="Assets/FishingMan/Script/Hook.cs" />
+      <File FileName="Assets/FishingMan/Script/Food.cs" />
+      <File FileName="Assets/FishingMan/Script/FishGameController.cs" Line="112" Column="38" />
+      <File FileName="Assets/FishingMan/Script/LoadingController.cs" Line="35" Column="1" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.ItemProperties.Assembly-CSharp PreferredExecutionTarget="7fc1b633-ef45-4745-b325-98ee9f257786" />
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MultiItemStartupConfigurations />
+</Properties>

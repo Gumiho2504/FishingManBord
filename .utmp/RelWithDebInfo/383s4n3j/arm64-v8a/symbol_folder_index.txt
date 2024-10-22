@@ -1,0 +1,1 @@
+/Users/rose/Documents/UnityGame/10/FishingManBord/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/383s4n3j/obj/arm64-v8a

@@ -1,0 +1,8 @@
+/Users/rose/Documents/UnityGame/10/FishingManBord/.utmp/RelWithDebInfo/383s4n3j/arm64-v8a/CMakeFiles/edit_cache.dir
+/Users/rose/Documents/UnityGame/10/FishingManBord/.utmp/RelWithDebInfo/383s4n3j/arm64-v8a/CMakeFiles/rebuild_cache.dir
+/Users/rose/Documents/UnityGame/10/FishingManBord/.utmp/RelWithDebInfo/383s4n3j/arm64-v8a/GameActivity/CMakeFiles/game.dir
+/Users/rose/Documents/UnityGame/10/FishingManBord/.utmp/RelWithDebInfo/383s4n3j/arm64-v8a/GameActivity/CMakeFiles/edit_cache.dir
+/Users/rose/Documents/UnityGame/10/FishingManBord/.utmp/RelWithDebInfo/383s4n3j/arm64-v8a/GameActivity/CMakeFiles/rebuild_cache.dir
+/Users/rose/Documents/UnityGame/10/FishingManBord/.utmp/RelWithDebInfo/383s4n3j/arm64-v8a/FramePacing/CMakeFiles/swappywrapper.dir
+/Users/rose/Documents/UnityGame/10/FishingManBord/.utmp/RelWithDebInfo/383s4n3j/arm64-v8a/FramePacing/CMakeFiles/edit_cache.dir
+/Users/rose/Documents/UnityGame/10/FishingManBord/.utmp/RelWithDebInfo/383s4n3j/arm64-v8a/FramePacing/CMakeFiles/rebuild_cache.dir
