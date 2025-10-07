@@ -1,7 +1,8 @@
 using System;
+using Unity.Netcode;
 using UnityEngine;
 
-public class LineController : MonoBehaviour
+public class LineController : NetworkBehaviour
 {
     private LineRenderer lr;
     private Transform[] points;
@@ -9,6 +10,20 @@ public class LineController : MonoBehaviour
     private void Awake()
     {
         lr = GetComponent<LineRenderer>();
+    }
+
+
+    bool isClientStated = false;
+
+    public override void OnNetworkSpawn()
+    {
+        // NetworkManager.Singleton.OnClientStarted += () =>
+        // {
+        //     if (IsClient)
+        //     {
+        //         isClientStated = true;
+        //     }
+        // };
     }
 
 
@@ -25,9 +40,13 @@ public class LineController : MonoBehaviour
 
     private void Update()
     {
-        for (int i = 0; i < points.Length; i++)
-        {
-            lr.SetPosition(i, points[i].position);
-        }
+        // if (isClientStated)
+        // {
+        //     for (int i = 0; i < points.Length; i++)
+        //     {
+        //         lr.SetPosition(i, points[i].position);
+        //     }
+        // }
+
     }
 }

@@ -6,12 +6,20 @@ public class LineTest : MonoBehaviour
     [SerializeField] private LineController line;
     void Start()
     {
-        line.SetUpLine(points);
+        //print(gameObject.name);
+
+    }
+
+
+    public void SetUpLinePoints(Transform[] points)
+    {
+
+       // line.SetUpLine(points);
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 }
