@@ -16,4 +16,25 @@ mergeInto(LibraryManager.library, {
     stringToUTF8(result, buffer, bufferSize);
     return buffer;
   },
+  RequestMotionPermission: function () {
+    if (
+      typeof DeviceMotionEvent !== "undefined" &&
+      typeof DeviceMotionEvent.requestPermission === "function"
+    ) {
+      DeviceMotionEvent.requestPermission()
+        .then((response) => {
+          if (response == "granted") {
+            window.addEventListener("devicemotion", (e) => {
+              window.motionX = e.accelerationIncludingGravity.x;
+              window.motionY = e.accelerationIncludingGravity.y;
+              window.motionZ = e.accelerationIncludingGravity.z;
+            });
+          }
+        })
+        .catch(console.error);
+    }
+  },
+  GetMotionY: function () {
+    return window.motionX || 0;
+  },
 });

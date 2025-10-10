@@ -1,6 +1,7 @@
 using UnityEngine;
-using QRCoder;
 using UnityEngine.UI;
+using QRCoder;
+
 public class QRCodeUnity : MonoBehaviour
 {
 
@@ -9,21 +10,6 @@ public class QRCodeUnity : MonoBehaviour
     void Start()
     {
 
-
-
-
-        // string text = "Hello Unity!";
-        // QRCodeGenerator qrGenerator = new QRCodeGenerator();
-        // QRCodeData qrCodeData = qrGenerator.CreateQrCode(text, QRCodeGenerator.ECCLevel.Q);
-
-        // // Generate raw bitmap (no System.Drawing)
-        // PngByteQRCode qrCode = new PngByteQRCode(qrCodeData);
-        // byte[] qrCodeBytes = qrCode.GetGraphic(20);
-
-        // // Convert to Unity texture
-        // Texture2D tex = new Texture2D(256, 256);
-        // tex.LoadImage(qrCodeBytes);
-        // qrRenderer.material.mainTexture = tex;
     }
 
     public static Texture2D GenerateQR(string text, int width, int height)
@@ -38,4 +24,6 @@ public class QRCodeUnity : MonoBehaviour
         tex.LoadImage(qrCodeBytes);
         return tex;
     }
+
+
 }

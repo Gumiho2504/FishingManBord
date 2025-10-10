@@ -624,6 +624,10 @@
       <HintPath>Library/PackageCache/com.unity.ext.nunit@031a54704bff/net40/unity-custom/nunit.framework.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="System.Text.Encoding.CodePages">
+      <HintPath>Assets/Packages/System.Text.Encoding.CodePages.5.0.0/lib/netstandard2.0/System.Text.Encoding.CodePages.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Unity.Plastic.Antlr3.Runtime">
       <HintPath>Library/PackageCache/com.unity.collab-proxy@ab839cc7d2ad/Lib/Editor/Unity.Plastic.Antlr3.Runtime.dll</HintPath>
       <Private>False</Private>
@@ -648,8 +652,16 @@
       <HintPath>Library/PackageCache/com.unity.collections@d49facba0036/Unity.Collections.Tests/System.IO.Hashing/System.IO.Hashing.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="QRCoder">
+      <HintPath>Assets/Packages/QRCoder.1.6.0/lib/netstandard2.0/QRCoder.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Unity.VisualScripting.Antlr3.Runtime">
       <HintPath>Library/PackageCache/com.unity.visualscripting@6279e2b7c485/Runtime/VisualScripting.Flow/Dependencies/NCalc/Unity.VisualScripting.Antlr3.Runtime.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="NuGetForUnity.PluginAPI">
+      <HintPath>Assets/NuGet/Editor/NuGetForUnity.PluginAPI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json">
@@ -664,12 +676,16 @@
       <HintPath>Library/PackageCache/com.unity.nuget.mono-cecil@d78732e851eb/Mono.Cecil.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="NugetForUnity">
+      <HintPath>Assets/NuGet/Editor/NugetForUnity.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="System.Runtime.CompilerServices.Unsafe">
       <HintPath>Library/PackageCache/com.unity.collections@d49facba0036/Unity.Collections.Tests/System.Runtime.CompilerServices.Unsafe/System.Runtime.CompilerServices.Unsafe.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="QRCoder">
-      <HintPath>Assets/Plugins/QRCoder.dll</HintPath>
+    <Reference Include="System.Drawing.Common">
+      <HintPath>Assets/Packages/System.Drawing.Common.5.0.3/lib/netstandard2.0/System.Drawing.Common.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEditor.iOS.Extensions.Xcode">

@@ -14,7 +14,7 @@ using Unity.Services.Core;
 using Unity.Services.Authentication;
 using Unity.Services.Relay.Models;
 using Unity.Services.Relay;
-using JetBrains.Annotations;
+
 
 // using Unity.Services.Relay.Models;
 // using Unity.Services.Relay;
@@ -29,6 +29,7 @@ public enum Type
 }
 public class TransportController : MonoBehaviour
 {
+    [SerializeField] GameObject loadingPanel;
     public RawImage qrDisplay;
     private const string URL = "https://lg---livescore.web.app/?code=";
 
@@ -85,9 +86,13 @@ public class TransportController : MonoBehaviour
 
     async void Start()
     {
+#if UNITY_WEBGL && !UNITY_EDITOR
+             type = Type.Client;
+#endif
 
         try
         {
+            loadingPanel.SetActive(true);
             await UnityServices.InitializeAsync();
 
             if (!AuthenticationService.Instance.IsSignedIn)
@@ -126,6 +131,7 @@ public class TransportController : MonoBehaviour
             var serverData = AllocationUtils.ToRelayServerData(allocation, "wss");
             transport.SetRelayServerData(serverData);
             NetworkManager.Singleton.StartServer();
+            loadingPanel.SetActive(false);
             qrDisplay.texture = QRCodeUnity.GenerateQR(URL + joinCode, 256, 256);
         }
         else if (type == Type.Client)
@@ -147,7 +153,7 @@ public class TransportController : MonoBehaviour
             //       clientData.ConnectionData, allocation.HostConnectionData);
             transport.SetRelayServerData(clientData);
 
-
+            loadingPanel.SetActive(false);
             NetworkManager.Singleton.StartClient();
         }
 
@@ -246,6 +252,7 @@ public class URLParameters : MonoBehaviour
     // href | hash | host | hostname | pathname | port | protocol | search
     public static string TestData = "|||||||";
     private static URLParameters m_Instance = null;
+
     public static URLParameters Instance
     {
         get

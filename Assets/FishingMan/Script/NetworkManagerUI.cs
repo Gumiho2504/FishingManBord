@@ -34,4 +34,6 @@ public class NetworkManagerUI : MonoBehaviour
     {
         gameObject.SetActive(false);
     }
+
+   
 }

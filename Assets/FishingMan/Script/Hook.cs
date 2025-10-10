@@ -15,6 +15,12 @@ public class Hook : NetworkBehaviour
         this.isHooked = isHooked;
     }
 
+    public void ActiveFood()
+    {
+        food.SetActive(true);
+        // isHooked = false;
+    }
+
 
 
     public void setFoodName(string foodName)

@@ -4,10 +4,10 @@ using System.Collections;
 using Unity.Netcode;
 using System;
 using Unity.VisualScripting;
-using UnityEngine.Video;
 using UnityEngine.EventSystems;
-using UnityEngine.Events;
 using System.Collections.Generic;
+
+
 
 
 
@@ -16,7 +16,7 @@ public class FishGameController : NetworkBehaviour
 
     private string localPlayerId;
 
-
+    InputField inputField;
     public static FishGameController instance;
 
     public GameObject foodPanel, kto;
@@ -32,37 +32,34 @@ public class FishGameController : NetworkBehaviour
     public float moveSpeed = 1f;
     public Button backButton;
     public Button fishingButton;
-    public GameObject foodChangePanel, fishParent;
+    public GameObject foodChangePanel, fishParent, networkUiPanel, loadingPanel;
     private int money = 10000;
     private int foodPrice = 0;
     public Text moneyText;
 
-    public Slider slider;
+    // public Slider slider;
 
     private Vector3 targetPosition;
     private bool isFishing = false;
-    private bool isReturning = false;
+    private bool isReturning = true;
 
 
     public event EventHandler<OnStartFishingArgs> OnStartFishing;
     public event EventHandler<OnChangeFoodArgs> OnChangeFood;
     public event EventHandler<OnUpHookArgs> OnUpHook;
-    public event EventHandler<OnCalculateFishArg> OnCalculateFish;
 
     public event EventHandler<OnYRobPosChangedArg> OnYRobPosChanged;
 
     public event EventHandler<OnStopPlayerArg> OnPlayerStop;
     float yPos = 0;
+    float xPos = 0;
+    private float robUpdateTimer = 0f;
     public class OnStopPlayerArg : EventArgs
     {
         public string id;
 
     }
-    public class OnCalculateFishArg : EventArgs
-    {
-        public string id;
-        public Fish fish;
-    }
+
     public class OnChangeFoodArgs : EventArgs
     {
         public string id;
@@ -87,6 +84,15 @@ public class FishGameController : NetworkBehaviour
     {
         public string id;
         public float y;
+        public float x;
+    }
+
+
+
+    private void SetLoadingActive(bool isActive, string msg = "")
+    {
+        loadingPanel.SetActive(isActive);
+        loadingPanel.GetComponentInChildren<Text>().text = msg;
     }
 
 
@@ -103,49 +109,113 @@ public class FishGameController : NetworkBehaviour
 
     void Start()
     {
-
-
-        backButton.onClick.AddListener(ReturnToStartManual);
-        fishingButton.onClick.AddListener(StartFishing);
-        slider.onValueChanged.AddListener((value) =>
+        if (!SystemInfo.supportsGyroscope)
         {
-            OnChangeYRobPosServerRpc(localPlayerId, value);
-        });
-
-    }
-
-
-
-
-
-
-
-    public override void OnNetworkSpawn()
-    {
-
-        var pos = NetworkManager.Singleton.LocalClientId == 1 ? firstPos : secondPos;
-
-        //  print($"id:{NetworkManager.Singleton.LocalClientId} | isClient:{IsClient} | isServer:{IsServer} | isHost:{IsHost} | isOwner:{IsOwner} | isLocalPlayer:{IsLocalPlayer} | isOwnedByServer {IsOwnedByServer}");
-        if (IsClient)
+            Debug.LogWarning("Gyroscope not supported on this device");
+        }
+        else
         {
-            SpawnPlayerServerRpc(pos.position.x, pos.position.y, pos.position.z, NetworkManager.Singleton.LocalClientId.ToString());
-            fishingButton.gameObject.SetActive(IsClient);
-            foodPanel.SetActive(IsClient);
-            localPlayerId = NetworkManager.Singleton.LocalClientId.ToString();
-
-
-            moneyText.gameObject.SetActive(true);
-
-
-            NetworkManager.Singleton.OnClientDisconnectCallback += OnServerClientDisconnect;
-
+            Input.gyro.enabled = true;
+            Input.gyro.updateInterval = 0.2f; // Set update interval to 60 Hz
 
         }
 
 
+        backButton.onClick.AddListener(ReturnToStartManual);
+        fishingButton.onClick.AddListener(StartFishing);
+
+
+    }
+
+
+    void Update()
+    {
+
+        if (Input.GetMouseButton(0) && isFishing && !IsServer)
+        {
+            isFishing = false;
+            isReturning = false;
+            backButton.gameObject.SetActive(true);
+            Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            mousePosition.z = 0;
+
+
+
+            money -= foodPrice;
+            moneyText.text = $"Money = {money}$";
+
+            StartFishingServerRpc(mousePosition.x, mousePosition.y, NetworkManager.Singleton.LocalClientId.ToString());
+
+        }
+
+        if (!IsServer && isReturning == false && !isFishing)
+        {
+            Vector3 tilt = Input.gyro.rotationRateUnbiased;
+
+            // Use threshold on tilt directly
+            if (Mathf.Abs(tilt.x) > 0.1f || Mathf.Abs(tilt.y) > 0.1f)
+            {
+                yPos = Math.Clamp(yPos + tilt.x * 0.1f, -4f, 4f);
+                xPos = Math.Clamp(xPos + tilt.y * 0.1f, -3f, 3f);
+
+                robUpdateTimer += Time.deltaTime;
+                if (robUpdateTimer >= 0.1f)
+                {
+                    robUpdateTimer -= 0.1f; // more precise
+                    OnChangeYRobPosServerRpc(localPlayerId, yPos, xPos);
+                }
+            }
+
+
+
+            // Vector3 tilt = Input.gyro.rotationRateUnbiased;
+            // if (Mathf.Abs(tilt.x - yPos) > 0.05f)
+            // {
+            //     yPos = Math.Clamp(yPos + tilt.x * 0.1f, -4f, 4f);
+            //     xPos = Math.Clamp(xPos + tilt.y * 0.1f, -3f, 3f);
+            //     StartCoroutine(OnRobChangePositionCoroutine());
+            // }
+        }
+
+
+
+    }
+
+    private bool isUpdatingRob = false;
+    private IEnumerator OnRobChangePositionCoroutine()
+    {
+        if (isUpdatingRob) yield break;
+        isUpdatingRob = true;
+        yield return new WaitForSeconds(0.1f);
+        OnChangeYRobPosServerRpc(localPlayerId, yPos, xPos);
+        isUpdatingRob = false;
+    }
+
+
+
+    private Transform pos;
+    public override void OnNetworkSpawn()
+    {
+        // print("client count " + NetworkManager.Singleton.ConnectedClientsList.Count);
+
+        pos = NetworkManager.Singleton.LocalClientId == 1 ? firstPos : secondPos;
+
+        //  print($"id:{NetworkManager.Singleton.LocalClientId} | isClient:{IsClient} | isServer:{IsServer} | isHost:{IsHost} | isOwner:{IsOwner} | isLocalPlayer:{IsLocalPlayer} | isOwnedByServer {IsOwnedByServer}");
+        if (IsClient)
+        {
+            //SpawnPlayerServerRpc(pos.position.x, pos.position.y, pos.position.z, NetworkManager.Singleton.LocalClientId.ToString());
+            fishingButton.gameObject.SetActive(IsClient);
+            foodPanel.SetActive(IsClient);
+            localPlayerId = NetworkManager.Singleton.LocalClientId.ToString();
+            moneyText.gameObject.SetActive(true);
+
+        }
+
+
+
+
         if (IsServer)
         {
-
             qrCode.SetActive(true);
         }
 
@@ -153,12 +223,18 @@ public class FishGameController : NetworkBehaviour
 
         if (NetworkManager.Singleton.ConnectedClientsList.Count > 1)
         {
-            if (IsServer)
-            {
-                qrCode.SetActive(false);
-            }
+            CloseQrServerRpc();
+            InactiveLoadingPanelRpc();
 
         }
+        else
+        {
+            SetLoadingActive(true, "Waiting for other player to join...");
+        }
+
+
+
+        NetworkManager.Singleton.OnClientDisconnectCallback += OnServerClientDisconnect;
 
 
         //  NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnect;
@@ -170,13 +246,33 @@ public class FishGameController : NetworkBehaviour
 
     }
 
+    [Rpc(SendTo.NotServer)]
+    private void InactiveLoadingPanelRpc()
+    {
+        SpawnPlayerServerRpc(pos.position.x, pos.position.y, pos.position.z, localPlayerId);
+        SetLoadingActive(false);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void CloseQrServerRpc()
+    {
+        print("close qr");
+        qrCode.SetActive(false);
+    }
+
     // Server detects disconnect
 
     private void OnServerClientDisconnect(ulong clientId)
     {
         print("Server: Client disconnected: " + clientId);
-        // string playerId = GetPlayerIdFromClientId(clientId); // map clientId → playerId
-        OnServerDisconnectServerRpc(localPlayerId);
+        if (IsServer)
+            OnPlayerStop?.Invoke(this, new OnStopPlayerArg { id = clientId.ToString() });
+
+        if (IsClient && clientId.ToSafeString() == localPlayerId)
+        {
+            ResetSetup(false);
+            backButton.gameObject.SetActive(false);
+        }
     }
 
     [ServerRpc(RequireOwnership = false)]
@@ -195,9 +291,9 @@ public class FishGameController : NetworkBehaviour
 
 
     [ServerRpc(RequireOwnership = false)]
-    public void OnChangeYRobPosServerRpc(string id, float y)
+    public void OnChangeYRobPosServerRpc(string id, float y, float x)
     {
-        OnYRobPosChanged?.Invoke(this, new OnYRobPosChangedArg { id = id, y = y });
+        OnYRobPosChanged?.Invoke(this, new OnYRobPosChangedArg { id = id, y = y, x = x });
     }
 
 
@@ -233,12 +329,6 @@ public class FishGameController : NetworkBehaviour
 
 
 
-
-
-
-
-
-
     [ServerRpc(RequireOwnership = false)]
     public void SpawnPlayerServerRpc(float x, float y, float z, string id)
     {
@@ -251,57 +341,6 @@ public class FishGameController : NetworkBehaviour
 
     }
 
-
-
-
-
-
-
-
-    void Update()
-    {
-
-        if (Input.GetMouseButton(0) && isFishing && !IsServer)
-        {
-            isFishing = false;
-            backButton.gameObject.SetActive(true);
-            Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            mousePosition.z = 0;
-            slider.gameObject.SetActive(true);
-            slider.value = mousePosition.y;
-
-            money -= foodPrice;
-            moneyText.text = $"Money = {money}$";
-            //var hook = Instantiate(hookPre, mousePosition, Quaternion.identity);
-            //targetPosition = new Vector3(mousePosition.x, mousePosition.y, 0);
-            StartFishingServerRpc(mousePosition.x, mousePosition.y, NetworkManager.Singleton.LocalClientId.ToString());
-
-        }
-
-
-
-    }
-
-
-
-    // [ServerRpc(RequireOwnership = false)]
-    // void HookFishServerRpc()
-    // {
-    //     MoveHook();
-    // }
-
-
-    // void MoveHook()
-    // {
-
-    //     LeanTween.move(hook.gameObject, targetPosition, moveSpeed);
-    // }
-
-
-
-
-
-
     public void StartFishing()
     {
         ResetSetup(false);
@@ -310,6 +349,7 @@ public class FishGameController : NetworkBehaviour
 
     private void ResetSetup(bool isActive)
     {
+        isReturning = isActive;
         isFishing = !isActive;
         foodChangePanel.SetActive(isActive);
         fishingButton.gameObject.SetActive(isActive);
@@ -323,15 +363,12 @@ public class FishGameController : NetworkBehaviour
     }
 
 
-
-
     public void ReturnToStartManual()
     {
         isReturning = true;
         backButton.gameObject.SetActive(false);
         ReturnToStartServerRpc(localPlayerId);
     }
-
 
     [ServerRpc(RequireOwnership = false)]
     public void ReturnToStartServerRpc(string id)
@@ -347,27 +384,34 @@ public class FishGameController : NetworkBehaviour
         {
             print($"id {id} | name {name}");
             //LeanTween.move(hook.gameObject, firstHook.position, moveSpeed);
+            if (name == "")
+            {
+                ResetSetup(true);
+                return;
+            }
+
             Fish fish = FindFirstObjectByType<FishSpawn>().getFishByFoodName(name);
-            var fishPre = new GameObject();
+
             if (fish)
             {
-                fishPre = Instantiate(fish.gameObject, fish.transform.position, Quaternion.identity);
+                var fishPre = Instantiate(fish.gameObject, fish.transform.position, Quaternion.identity);
                 fishPre.transform.position = catchPos.position;
                 LeanTween.scale(fishPre, Vector3.one * 1f, 0.3f).setEase(LeanTweenType.easeOutBack);
 
                 money += fish.food.price;
                 moneyText.text = $"Money = {money}$";
-
+                StartCoroutine(TT(fishPre));
             }
 
-            StartCoroutine(TT(fishPre));
+
+
+
         }
 
 
     }
     IEnumerator TT(GameObject fish)
     {
-        //yield return ReturnToStart();
 
         yield return new WaitForSeconds(2f);
         kto.SetActive(true);
@@ -388,18 +432,6 @@ public class FishGameController : NetworkBehaviour
             kto.SetActive(false);
         });
         ResetSetup(true);
-        // for (int i = 0; i < fishParent.transform.childCount; i++)
-        // {
-        //     Fish fish = fishParent.transform.GetChild(i).GetComponent<Fish>();
-        //     // money += fish.food.price;
-        //     // moneyText.text = $"Money = {money}$";
-        //     yield return new WaitForSeconds(0.3f);
-        //     Destroy(fish.gameObject);
-        // }
-
-        //yield return new WaitForSeconds(1f);
-        //foodChangePanel.SetActive(true);
-        //fishingButton.gameObject.SetActive(true);
 
     }
 
@@ -408,7 +440,7 @@ public class FishGameController : NetworkBehaviour
     {
         if (id == localPlayerId)
         {
-            slider.gameObject.SetActive(false);
+            isReturning = true;
             print("fish eat food");
         }
 
@@ -416,19 +448,11 @@ public class FishGameController : NetworkBehaviour
     }
 
 
-    IEnumerator ReturnToStart()
+    public void Leave()
     {
-
-        LeanTween.move(hook.gameObject, firstHook.position, moveSpeed).setOnComplete(() =>
-        {
-
-            isReturning = false;
-
-        });
-
-        yield return isReturning;
+        NetworkManager.Singleton.Shutdown();
+        networkUiPanel.SetActive(true);
     }
-
 
 }
 

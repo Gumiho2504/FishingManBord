@@ -1,5 +1,6 @@
 
 using System;
+using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -47,7 +48,7 @@ public class Boat : NetworkBehaviour
         print("play stop " + e.id);
         if (IsOwn(e.id))
         {
-            //Destroy(gameObject);
+            Destroy(gameObject);
         }
     }
 
@@ -58,14 +59,51 @@ public class Boat : NetworkBehaviour
         FishGameController.instance.OnFishEatFoodClientRpc(id);
     }
 
+    private Vector3 targetPos;
+    private bool isMoving = false;
+
     private void OnYRobPosChanged(object sender, FishGameController.OnYRobPosChangedArg e)
     {
-        if (IsOwn(e.id))
+        if (!IsOwn(e.id)) return;
+        if (isMoving) return;
+        if (!isMoving)
         {
-            rob.transform.position = new Vector3(rob.transform.position.x, e.y, rob.transform.position.z);
-
+            targetPos = new Vector3(e.x, e.y, rob.transform.position.z);
+            isMoving = true;
         }
+
+
+        LeanTween.move(rob.gameObject, targetPos, 0.05f).setOnComplete(() =>
+        {
+            isMoving = false;
+        });
+        if (Vector3.Distance(rob.transform.position, targetPos) < 0.01f)
+        {
+            rob.transform.position = targetPos;
+            isMoving = true;
+            return;
+        }
+        //StopAllCoroutines();
+        //StartCoroutine(MoveRobSmoothly(rob.gameObject, targetPos));
+
     }
+
+    private IEnumerator MoveRobSmoothly(GameObject rob, Vector3 targetPosition)
+    {
+        Vector3 start = rob.transform.position;
+        float elapsed = 0f;
+        float duration = 0.2f;
+
+        while (elapsed < duration)
+        {
+            rob.transform.position = Vector3.Lerp(start, targetPosition, elapsed / duration);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        rob.transform.position = targetPosition;
+    }
+
 
     private void OnDisable()
     {
@@ -115,18 +153,19 @@ public class Boat : NetworkBehaviour
 
     private void OnStartFishing(object sender, FishGameController.OnStartFishingArgs e)
     {
+        isMoving = false;
         print("start fishing + pos " + e.pos + " + player id " + NetworkManager.Singleton.LocalClientId);
         if (IsOwn(e.id))
         {
             hook.SetIsHooked(false);
-            MoveHook(e.pos);
+            //MoveHook(e.pos);
         }
     }
 
     void Update()
     {
         //floating animation
-        transform.position = new Vector3(transform.position.x, originalY + Mathf.Sin(Time.time) * floatStrength, transform.position.z);
+        //transform.position = new Vector3(transform.position.x, originalY + Mathf.Sin(Time.time) * floatStrength, transform.position.z);
 
 
         // line
@@ -141,6 +180,7 @@ public class Boat : NetworkBehaviour
     void MoveHook(Vector3 position)
     {
         print("move hook " + position);
+
         LeanTween.move(rob.gameObject, position, moveSpeed);
     }
 
@@ -149,12 +189,16 @@ public class Boat : NetworkBehaviour
     {
         LeanTween.move(rob.gameObject, first.position, moveSpeed).setOnComplete(() =>
        {
+
+           hook.ActiveFood();
            if (hook.transform.childCount > 0)
            {
                string foodName = hook.transform.GetChild(0).GetComponent<Fish>().food.foodName;
                FishGameController.instance.ReturnToStartClientRpc(id, foodName);
                Destroy(hook.transform.GetChild(0).gameObject);
+               return;
            }
+           FishGameController.instance.ReturnToStartClientRpc(id, "");
 
        });
     }

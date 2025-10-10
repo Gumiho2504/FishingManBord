@@ -1,0 +1,12 @@
+# ninja log v5
+22	908	1759829908177537767	FramePacing/CMakeFiles/swappywrapper.dir/UnitySwappyWrapper.cpp.o	34a16f3b8ef0faa3
+909	1333	1759829908574242852	/Users/macbook/Documents/Unity-Game/FishingManBord/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/l364y3k3/obj/arm64-v8a/libswappywrapper.so	e4e2b33c596249d3
+2	1909	1759829909172936048	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	19b162c36e501855
+3	1934	1759829909203823233	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	b1629184dfb5aea0
+6	1939	1759829909209606734	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	cf2c27507a92fce9
+2	1976	1759829909246560798	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	18acf53ec3fb01e1
+1	2022	1759829909293358517	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	266a7441cb18d615
+13	2140	1759829909410524212	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	511b0e9383c14b74
+3	2235	1759829909506992880	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	dc7a7576af03ff1b
+0	2323	1759829909594340939	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	bbdcee7fffe21bab
+2323	2462	1759829909733935258	/Users/macbook/Documents/Unity-Game/FishingManBord/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/l364y3k3/obj/arm64-v8a/libgame.so	567b69c461334a73
