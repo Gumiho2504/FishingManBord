@@ -6,6 +6,7 @@ using System;
 using Unity.VisualScripting;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 
 
 
@@ -131,6 +132,7 @@ public class FishGameController : NetworkBehaviour
     void Update()
     {
 
+
         if (Input.GetMouseButton(0) && isFishing && !IsServer)
         {
             isFishing = false;
@@ -151,7 +153,6 @@ public class FishGameController : NetworkBehaviour
         if (!IsServer && isReturning == false && !isFishing)
         {
             Vector3 tilt = Input.gyro.rotationRateUnbiased;
-
             // Use threshold on tilt directly
             if (Mathf.Abs(tilt.x) > 0.1f || Mathf.Abs(tilt.y) > 0.1f)
             {
@@ -453,6 +454,8 @@ public class FishGameController : NetworkBehaviour
         NetworkManager.Singleton.Shutdown();
         networkUiPanel.SetActive(true);
     }
+
+    
 
 }
 

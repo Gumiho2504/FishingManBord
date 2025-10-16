@@ -14,6 +14,8 @@ using Unity.Services.Core;
 using Unity.Services.Authentication;
 using Unity.Services.Relay.Models;
 using Unity.Services.Relay;
+using Unity.VisualScripting;
+using UnityEngine.SceneManagement;
 
 
 // using Unity.Services.Relay.Models;
@@ -86,9 +88,9 @@ public class TransportController : MonoBehaviour
 
     async void Start()
     {
-#if UNITY_WEBGL && !UNITY_EDITOR
-             type = Type.Client;
-#endif
+// #if UNITY_WEBGL && !UNITY_EDITOR
+//              type = Type.Client;
+// #endif
 
         try
         {
@@ -160,6 +162,17 @@ public class TransportController : MonoBehaviour
 
 
 
+
+    }
+
+
+    void Update()
+    {
+        if (Input.GetKey(KeyCode.Escape))
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            NetworkManager.Singleton.Shutdown();
+        }
 
     }
 

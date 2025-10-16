@@ -12,8 +12,11 @@ EditorBuildSettings:
     path: Assets/Scenes/SampleScene.unity
     guid: 2cda990e2423bbf4892e6590ba056729
   - enabled: 0
-    path: Assets/FishingMan/Scenes/New Scene.unity
+    path: Assets/FishingMan/Scenes/room.unity
     guid: bda91567b3f954c059c3125feff5bc1a
+  - enabled: 0
+    path: Assets/FishingMan/Scenes/test.unity
+    guid: ced882be196e34b1a9010c1e84e4ef79
   m_configObjects:
     com.unity.adaptiveperformance.simulator.provider_settings: {fileID: 11400000, guid: ba8b674022dfa4cf4b78ca0815b2e3a8, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: abfc50568cd094ab2a57f0b3510d3384, type: 3}

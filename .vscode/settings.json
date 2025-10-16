@@ -57,5 +57,5 @@
     "Temp/": true
   },
   "dotnet.defaultSolution": "FishingManBord.sln",
-  "cSpell.words": ["Behaviour"]
+  "cSpell.words": ["Behaviour", "Prefs"]
 }
