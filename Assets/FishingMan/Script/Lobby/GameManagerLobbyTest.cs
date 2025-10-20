@@ -1,5 +1,7 @@
 using Unity.Netcode;
+using UnityEditor.SearchService;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class GameManagerLobbyTest : NetworkBehaviour
@@ -13,18 +15,43 @@ public class GameManagerLobbyTest : NetworkBehaviour
         {
             SpawnPlayers();
         }
-        
+
+
+
+
+
     }
 
     private void SpawnPlayers()
     {
+        print("spawn players : " + NetworkManager.Singleton.ConnectedClientsList.Count);
         foreach (var client in NetworkManager.Singleton.ConnectedClientsList)
         {
-            var spawnPos = new Vector3(Random.Range(-4, 4), 0, Random.Range(-4, 4));
+
+            var spawnPos = new Vector3(Random.Range(-4, 4), Random.Range(-4, 4), 0);
             var player = Instantiate(playerPrefab, spawnPos, Quaternion.identity);
             player.GetComponent<NetworkObject>().SpawnAsPlayerObject(client.ClientId);
 
-            playerIdText.text = client.ClientId.ToString();
+            SetPlayerIdRpc(client.ClientId);
+
+            //SceneManager.MoveGameObjectToScene(player, SceneManager.GetSceneByName("test"));
+
         }
+
+        //SceneManager.UnloadScene(SceneManager.GetSceneByName("room"));
+
     }
+
+
+    [Rpc(SendTo.ClientsAndHost)]
+    private void SetPlayerIdRpc(ulong playerId)
+    {
+        playerIdText.text = playerId.ToString();
+    }
+
+    // [Rpc(SendTo.ClientsAndHost)]
+    // private void MovePlayerToSceneRpc(GameObject player)
+    // {
+
+    // }
 }

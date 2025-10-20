@@ -1,7 +1,5 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using Unity.Services.Authentication;
@@ -11,6 +9,7 @@ using Unity.Services.Lobbies.Models;
 using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace FishingManGame
@@ -87,17 +86,7 @@ namespace FishingManGame
             // input field listeners
             playerNameInputField.onEndEdit.AddListener((string name) => { playerName = name; });
             lobbyNameInputField.onEndEdit.AddListener((string name) => { lobbyName = name; });
-            //maxPlayersInputField.onEndEdit.AddListener((string max) => { int.TryParse(max, out maxPlayers); });
-            // gameModeInputField.onEndEdit.AddListener((string mode) =>
-            // {
-            //     if (mode == "OneVsOne")
-            //         gameMode = GameMode.OneVsOne;
-            //     else
-            //         gameMode = GameMode.None;
-            // });
-            // lobbyCodeInputField.onEndEdit.AddListener((string code) => { lobbyCode = code; });
 
-            // button listeners
             doneButton.onClick.AddListener(OnDoneButtonClicked);
             createLobbyButton.onClick.AddListener(() => { CreateLobby(lobbyName); });
             addLobbyButton.onClick.AddListener(OnAddLobbyClicked);
@@ -118,6 +107,9 @@ namespace FishingManGame
                 Initialized();
             }
 
+
+
+
         }
 
 
@@ -133,12 +125,14 @@ namespace FishingManGame
             if (UnityServices.State == ServicesInitializationState.Initialized) return;
 
             ShowLoadingPanel(true, "Initializing...");
+
             await UnityServices.InitializeAsync();
 
             AuthenticationService.Instance.SignedIn += () =>
-           {
-               Debug.Log("Signed in : " + AuthenticationService.Instance.PlayerId);
-           };
+            {
+                Debug.Log("Signed in : " + AuthenticationService.Instance.PlayerId);
+            };
+
             if (!AuthenticationService.Instance.IsSignedIn)
             {
                 await AuthenticationService.Instance.SignInAnonymouslyAsync();
@@ -157,13 +151,13 @@ namespace FishingManGame
             try
             {
                 ShowLoadingPanel(true, "Creating Lobby...");
-                if (lobbyName == null && lobbyName == "")
-                {
-                    return;
-                }
-                Allocation allocation = await RelayService.Instance.CreateAllocationAsync(3); // max 3 clients
-                string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
-                Debug.Log("Relay join code: " + joinCode);
+
+                if (string.IsNullOrEmpty(lobbyName)) return;
+
+                //Allocation allocation = await RelayService.Instance.CreateAllocationAsync(2);
+                //string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
+
+
                 var options = new CreateLobbyOptions
                 {
                     IsPrivate = false,
@@ -173,27 +167,32 @@ namespace FishingManGame
                     { KEY_GAME_MODE, new DataObject(DataObject.VisibilityOptions.Public, GameMode.OneVsOne.ToString()) },
                     { KEY_LOBBY_NAME, new DataObject(DataObject.VisibilityOptions.Public, lobbyName) },
                     { KEY_START_GAME, new DataObject(DataObject.VisibilityOptions.Member, "False") },
-                    { KEY_RELAY_CODE, new DataObject(DataObject.VisibilityOptions.Public, joinCode) }
+                   // { KEY_RELAY_CODE, new DataObject(DataObject.VisibilityOptions.Public, joinCode) }
                 }
                 };
+
                 Lobby lobby = await LobbyService.Instance.CreateLobbyAsync(lobbyName, 2, options);
+
                 m_joinLobby = lobby;
+                StartCoroutine(HeartbeatLobbyCoroutine(m_joinLobby, 15));
 
 
                 // Configure Unity Transport
-                var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-                var serverData = AllocationUtils.ToRelayServerData(allocation, "wss");
-                transport.SetRelayServerData(serverData);
+                // var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+                // var serverData = AllocationUtils.ToRelayServerData(allocation, "wss");
+                // transport.SetRelayServerData(serverData);
 
-                Debug.Log("Created lobby : " + lobby.Name + ",Mode" + lobby.Data["GameMode"].Value + ",Code" + lobby.LobbyCode);
+                //Debug.Log("Created lobby : " + lobby.Name + ",Mode" + lobby.Data["GameMode"].Value + ",Code" + lobby.LobbyCode);
+
                 ShowLoadingPanel(false);
                 lobbyCreatePanel.SetActive(false);
                 lobbyRoomPanel.SetActive(true);
+
                 ListPlayers(m_joinLobby);
 
                 NetworkManager.Singleton.StartHost();
 
-                StartCoroutine(HeartbeatLobbyCoroutine(m_joinLobby, 15));
+
             }
             catch (LobbyServiceException e)
             {
@@ -209,22 +208,24 @@ namespace FishingManGame
             {
 
                 ShowLoadingPanel(true, "Joining Lobby...");
+
                 var Player = GetPlayer();
+
                 var options = new JoinLobbyByIdOptions
                 {
                     Player = Player
                 };
-                m_joinLobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobby.Id, options);
-                string joinCode = m_joinLobby.Data[KEY_RELAY_CODE].Value;
-                Debug.Log("Relay join code: " + joinCode);
 
+                m_joinLobby = await LobbyService.Instance.JoinLobbyByIdAsync(lobby.Id, options);
+                //string joinCode = m_joinLobby.Data[KEY_RELAY_CODE].Value;
                 StartCoroutine(HeartbeatLobbyCoroutine(m_joinLobby, 15));
+
                 ShowLoadingPanel(false);
                 lobbyRoomPanel.SetActive(true);
 
                 ListPlayers(m_joinLobby);
-                StartCoroutine(HeartbeatLobbyCoroutine(m_joinLobby, 15));
-                JoinAllocation(joinCode);
+                NetworkManager.Singleton.StartClient();
+                //JoinAllocation(joinCode);
 
             }
             catch (LobbyServiceException e)
@@ -367,15 +368,86 @@ namespace FishingManGame
                         };
                         m_joinLobby = await LobbyService.Instance.UpdateLobbyAsync(m_joinLobby.Id, options);
                         Debug.Log("All players joined, starting game...");
-                        // load game scene
-                        NetworkManager.Singleton.SceneManager.LoadScene("test", UnityEngine.SceneManagement.LoadSceneMode.Additive);
+                        //await SceneManager.UnloadSceneAsync("room");
+                        await SceneManager.UnloadSceneAsync(SceneManager.GetActiveScene().buildIndex);
+                        if (NetworkManager.Singleton.IsHost)
+                            NetworkManager.Singleton.SceneManager.LoadScene("test", LoadSceneMode.Additive);
+
+
+
                     }
+
 
                 }
             }
 
 
         }
+
+
+
+        private Coroutine lobbyPollCoroutine;
+
+        public void StartLobbyPoll()
+        {
+            if (lobbyPollCoroutine == null)
+                lobbyPollCoroutine = StartCoroutine(LobbyPollCoroutine());
+        }
+
+        private IEnumerator LobbyPollCoroutine()
+        {
+            const float pollInterval = 3f;
+
+            while (m_joinLobby != null && m_joinLobby.Data[KEY_START_GAME].Value != "True")
+            {
+                var getLobbyTask = LobbyService.Instance.GetLobbyAsync(m_joinLobby.Id);
+                yield return new WaitUntil(() => getLobbyTask.IsCompleted);
+
+                if (getLobbyTask.Exception == null)
+                {
+                    m_joinLobby = getLobbyTask.Result;
+                    ClearPlayerList();
+                    ListPlayers(m_joinLobby);
+
+                    if (IsLobbyHost() && m_joinLobby.Players.Count == m_joinLobby.MaxPlayers)
+                    {
+                        // Start game
+                        var updateOptions = new UpdateLobbyOptions
+                        {
+                            Data = new Dictionary<string, DataObject>()
+                    {
+                        { KEY_START_GAME, new DataObject(DataObject.VisibilityOptions.Member, "True") }
+                    }
+                        };
+
+                        var updateTask = LobbyService.Instance.UpdateLobbyAsync(m_joinLobby.Id, updateOptions);
+                        yield return new WaitUntil(() => updateTask.IsCompleted);
+
+                        Debug.Log("All players joined, starting game...");
+
+                        // Only the host loads the scene via Netcode
+                        if (NetworkManager.Singleton.IsHost)
+                        {
+                            var sceneTask = NetworkManager.Singleton.SceneManager.LoadScene("test", LoadSceneMode.Single);
+
+                        }
+
+                        break;
+                    }
+                }
+                else
+                {
+                    Debug.LogError("Lobby poll failed: " + getLobbyTask.Exception);
+                }
+
+                yield return new WaitForSeconds(pollInterval);
+            }
+
+            lobbyPollCoroutine = null;
+        }
+
+
+
 
         private void ShowLoadingPanel(bool isActive, string msg = "")
         {

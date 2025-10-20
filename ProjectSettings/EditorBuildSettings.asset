@@ -5,16 +5,16 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/FishingMan/Scenes/Game.unity
     guid: 3fc8acdd13e6c734bafef6554d6fdbcd
   - enabled: 0
     path: Assets/Scenes/SampleScene.unity
     guid: 2cda990e2423bbf4892e6590ba056729
-  - enabled: 0
+  - enabled: 1
     path: Assets/FishingMan/Scenes/room.unity
     guid: bda91567b3f954c059c3125feff5bc1a
-  - enabled: 0
+  - enabled: 1
     path: Assets/FishingMan/Scenes/test.unity
     guid: ced882be196e34b1a9010c1e84e4ef79
   m_configObjects:
