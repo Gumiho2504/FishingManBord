@@ -197,7 +197,7 @@ public class FishGameController : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         // print("client count " + NetworkManager.Singleton.ConnectedClientsList.Count);
-
+        SetLoadingActive(true, "Waiting for other player to join...");
         pos = NetworkManager.Singleton.LocalClientId == 1 ? firstPos : secondPos;
 
         //  print($"id:{NetworkManager.Singleton.LocalClientId} | isClient:{IsClient} | isServer:{IsServer} | isHost:{IsHost} | isOwner:{IsOwner} | isLocalPlayer:{IsLocalPlayer} | isOwnedByServer {IsOwnedByServer}");
@@ -223,6 +223,7 @@ public class FishGameController : NetworkBehaviour
 
         if (NetworkManager.Singleton.ConnectedClientsList.Count > 1)
         {
+            SetLoadingActive(false);
             CloseQrServerRpc();
             InactiveLoadingPanelRpc();
 
