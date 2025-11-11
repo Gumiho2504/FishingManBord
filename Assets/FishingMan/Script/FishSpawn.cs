@@ -15,15 +15,25 @@ public class FishSpawn : NetworkBehaviour
     public Vector3 maxArea;
     private float spawnTimer;
     public static bool isFishSpawned = false;
+    bool isSpawn = true;
     private void Start()
     {
 
         spawnTimer = GetRandomSpawnInterval();
         //if (IsServer)
+        NetworkManager.Singleton.OnServerStopped += OnServerStopped;
+        ;
 
 
     }
 
+    private void OnServerStopped(bool obj)
+    {
+        if (IsServer)
+        {
+            isSpawn = false;
+        }
+    }
 
     public Fish getFishByFoodName(string foodName)
     {
@@ -48,6 +58,7 @@ public class FishSpawn : NetworkBehaviour
         base.OnNetworkSpawn();
         if (IsServer)
         {
+            isSpawn = true;
             SpawnFish();
         }
     }
@@ -62,7 +73,7 @@ public class FishSpawn : NetworkBehaviour
     }
     public IEnumerator SpawnFishOverTime()
     {
-        while (true)
+        while (isSpawn)
         {
             yield return new WaitForSeconds(spawnTimer);
 
@@ -73,6 +84,8 @@ public class FishSpawn : NetworkBehaviour
             spawnTimer = GetRandomSpawnInterval();
         }
     }
+
+
 
 
 

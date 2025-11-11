@@ -3,17 +3,34 @@ using UnityEngine.UI;
 using System.Collections;
 using Unity.Netcode;
 using System;
-using Unity.VisualScripting;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEngine.SceneManagement;
 
+[Serializable]
+public class Reward
+{
 
+    [SerializeField] public int value;
+    [SerializeField] public string title;
+    [SerializeField] public string subTitle;
+    [SerializeField] public Sprite rewardSprite;
+    [SerializeField] public RewardType rewardType;
 
+}
+
+public enum RewardType
+{
+    NONE, COIN, PROMOTION, HEARD
+}
 
 
 public class FishGameController : NetworkBehaviour
 {
 
+    public bool isSpawnFish;
+    public List<Reward> rewards = new List<Reward>();
     private string localPlayerId;
 
     InputField inputField;
@@ -42,6 +59,12 @@ public class FishGameController : NetworkBehaviour
     private Vector3 targetPosition;
     private bool isFishing = false;
     private bool isReturning = true;
+
+
+    public GameObject rewardPanel;
+    public Text titleText, subTitleText;
+    public Image rewardSprite;
+    public GameObject doneButton;
 
 
     public event EventHandler<OnStartFishingArgs> OnStartFishing;
@@ -142,7 +165,7 @@ public class FishGameController : NetworkBehaviour
 
 
             money -= foodPrice;
-            moneyText.text = $"Money = {money}$";
+            moneyText.text = $"{money}";
 
             StartFishingServerRpc(mousePosition.x, mousePosition.y, NetworkManager.Singleton.LocalClientId.ToString());
 
@@ -217,11 +240,13 @@ public class FishGameController : NetworkBehaviour
         if (IsServer)
         {
             qrCode.SetActive(true);
+            doneButton.SetActive(false);
+
         }
 
 
 
-        if (NetworkManager.Singleton.ConnectedClientsList.Count > 1)
+        if (NetworkManager.Singleton.ConnectedClientsList.Count > 0)
         {
             SetLoadingActive(false);
             CloseQrServerRpc();
@@ -400,7 +425,7 @@ public class FishGameController : NetworkBehaviour
                 LeanTween.scale(fishPre, Vector3.one * 1f, 0.3f).setEase(LeanTweenType.easeOutBack);
 
                 money += fish.food.price;
-                moneyText.text = $"Money = {money}$";
+                moneyText.text = $"{money}";
                 StartCoroutine(TT(fishPre));
             }
 
@@ -432,8 +457,46 @@ public class FishGameController : NetworkBehaviour
         {
             kto.SetActive(false);
         });
+
+
+        // random rewards
+        int rewardIndex = UnityEngine.Random.Range(0, rewards.Count);
+        var reward = rewards[rewardIndex];
+
+        money += reward.value;
+        moneyText.text = $"{money}";
+        rewardSprite.sprite = reward.rewardSprite;
+        titleText.text = reward.title;
+        subTitleText.text = reward.subTitle;
+        rewardPanel.SetActive(true);
+        ShowRewardServerRpc(localPlayerId, rewardIndex);
         ResetSetup(true);
 
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void ShowRewardServerRpc(string id, int rewardIndex)
+    {
+        var reward = rewards[rewardIndex];
+        rewardSprite.sprite = reward.rewardSprite;
+        titleText.text = reward.title;
+        subTitleText.text = reward.subTitle;
+        rewardPanel.SetActive(true);
+    }
+
+    public void DoneButtonClick()
+    {
+        rewardPanel.SetActive(false);
+        SetInActiveRewardPanelServerRpc(localPlayerId);
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void SetInActiveRewardPanelServerRpc(string id)
+    {
+        //if (id == localPlayerId)
+        //  {
+        rewardPanel.SetActive(false);
+        // }
     }
 
     [ClientRpc]
@@ -452,7 +515,10 @@ public class FishGameController : NetworkBehaviour
     public void Leave()
     {
         NetworkManager.Singleton.Shutdown();
+        qrCode.SetActive(false);
         networkUiPanel.SetActive(true);
+        SceneManager.LoadScene(0);
+
     }
 
 }

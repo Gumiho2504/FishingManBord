@@ -15,7 +15,7 @@ using Unity.Services.Authentication;
 using Unity.Services.Relay.Models;
 using Unity.Services.Relay;
 using System;
-using UnityEngine.UIElements;
+
 
 
 // using Unity.Services.Relay.Models;
@@ -34,6 +34,7 @@ public class TransportController : MonoBehaviour
     public static TransportController instance { get; private set; }
     [SerializeField] GameObject loadingPanel;
     public RawImage qrDisplay;
+    public GameObject networkUIPanel;
     private const string URL = "https://lg---livescore.web.app/?code=";
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -98,40 +99,45 @@ public class TransportController : MonoBehaviour
 
         Debug.Log("Unity Services initialized and signed in!");
         // Create allocation for 1 host + N clients
-        if (type == Type.Server)
-        {
-            // Allocation allocation = await RelayService.Instance.CreateAllocationAsync(3); // max 3 clients
+        // if (type == Type.Server)
+        // {
+        // Allocation allocation = await RelayService.Instance.CreateAllocationAsync(3); // max 3 clients
 
-            // string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
-            // Debug.Log("Relay join code: " + joinCode);
+        // string joinCode = await RelayService.Instance.GetJoinCodeAsync(allocation.AllocationId);
+        // Debug.Log("Relay join code: " + joinCode);
 
-            // // Configure Unity Transport
-            // var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-            // var serverData = AllocationUtils.ToRelayServerData(allocation, "wss");
-            // transport.SetRelayServerData(serverData);
-            // NetworkManager.Singleton.StartServer();
-            // loadingPanel.SetActive(false);
-            // qrDisplay.texture = QRCodeUnity.GenerateQR(URL + joinCode, 256, 256);
-            // relayCodeText.text = "Code: " + joinCode;
-        }
-        else if (type == Type.Client)
-        {
-            //             string joinCode = "";
-            // #if UNITY_WEBGL && !UNITY_EDITOR
-            //              joinCode = GetUrlParam("code");
-            //              print("join code form param : " + joinCode);
-            // #endif
-            //             JoinAllocation allocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
-            //             // Configure Unity Transport
-            //             var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-            //             var clientData = AllocationUtils.ToRelayServerData(allocation, "wss");
-            //             transport.SetRelayServerData(clientData);
+        // // Configure Unity Transport
+        // var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+        // var serverData = AllocationUtils.ToRelayServerData(allocation, "wss");
+        // transport.SetRelayServerData(serverData);
+        // NetworkManager.Singleton.StartServer();
+        // loadingPanel.SetActive(false);
+        // qrDisplay.texture = QRCodeUnity.GenerateQR(URL + joinCode, 256, 256);
+        // relayCodeText.text = "Code: " + joinCode;
+        //}
+        // else if (type == Type.Client)
+        // {
 
-            //             loadingPanel.SetActive(false);
-            //             NetworkManager.Singleton.StartClient();
-        }
+#if UNITY_WEBGL && !UNITY_EDITOR
+        string joinCode = "";
+                    joinCode = GetUrlParam("code");
+                     print("join code form param : " + joinCode);
 
+        if(string.IsNullOrEmpty(joinCode)) return;
+            StartClient(joinCode);
+            networkUIPanel.SetActive(false);
 
+        // JoinAllocation allocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
+        // // Configure Unity Transport
+        // var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+        // var clientData = AllocationUtils.ToRelayServerData(allocation, "wss");
+        // transport.SetRelayServerData(clientData);
+
+        // loadingPanel.SetActive(false);
+        // NetworkManager.Singleton.StartClient();
+        // }
+
+#endif
 
 
 
@@ -150,10 +156,14 @@ public class TransportController : MonoBehaviour
         var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
         var serverData = AllocationUtils.ToRelayServerData(allocation, "wss");
         transport.SetRelayServerData(serverData);
+
         NetworkManager.Singleton.StartServer();
         loadingPanel.SetActive(false);
+
+        // generate qr
         qrDisplay.texture = QRCodeUnity.GenerateQR(URL + joinCode, 256, 256);
         relayCodeText.text = "Code: " + joinCode;
+
         SetLoadingActive(false);
     }
 
@@ -165,6 +175,7 @@ public class TransportController : MonoBehaviour
         if (String.IsNullOrEmpty(joinCode)) return;
         try
         {
+
             JoinAllocation allocation = await RelayService.Instance.JoinAllocationAsync(joinCode);
             // Configure Unity Transport
             var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();

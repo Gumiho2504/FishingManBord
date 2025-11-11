@@ -54,8 +54,6 @@ public class Boat : NetworkBehaviour
 
     private void OnFishEatFood()
     {
-
-
         FishGameController.instance.OnFishEatFoodClientRpc(id);
     }
 
